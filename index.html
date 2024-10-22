@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js 讯飞听见界面</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Top Navigation Bar -->
+        <div class="top-nav">
+            <h1>{{ title }}</h1>
+            <p>{{ timestamp }}</p>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="keywords">
+                    <h3>关键词</h3>
+                    <button v-for="keyword in keywords" :key="keyword" class="keyword-btn">{{ keyword }}</button>
+                </div>
+                
+                <div class="dialogue">
+                    <h3>原文</h3>
+                    <div v-for="dialog in dialogues" :key="dialog.id" class="dialogue-item">
+                        <p><strong>{{ dialog.speaker }}</strong> {{ dialog.time }}</p>
+                        <p>{{ dialog.text }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="summary">
+                    <h3>全文摘要</h3>
+                    <p>{{ summary }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Control Area -->
+        <div class="bottom-controls">
+            <button @click="playPause">播放/暂停</button>
+            <span>当前时间: {{ currentTime }}</span>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
