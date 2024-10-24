@@ -2,7 +2,7 @@
   <div class="sidebar">
     <!-- Logo -->
     <div class="logo-container">
-      <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <img src="@/assets/logo3.png" alt="Logo" class="logo" />
       <span class="app-title">VocoWrite</span>
     </div>
     <ul class="menu">
