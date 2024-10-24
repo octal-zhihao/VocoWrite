@@ -1,30 +1,55 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="app-container">
+    <!-- 引入侧边栏组件 -->
+    <Sidebar />
+
+    <!-- 主内容区域 -->
+    <div class="main-container">
+      <!-- 顶部导航栏 -->
+      <Header />
+
+      <!-- 主内容区域渲染页面组件 -->
+      <div class="content">
+        <router-view />
+      </div>
+    </div>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<script>
+import Sidebar from './components/Sidebar.vue';
+import Header from './components/Header.vue';
+
+export default {
+  components: {
+    Sidebar,
+    Header,
+  },
+};
+</script>
+
+<style>
+.app-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f4f6f8;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.main-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  margin-left: 15px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.content {
+  margin-top: 60px; /* 确保内容不被固定的Header遮挡，60px是Header的高度 */
+  padding: 20px 30px; /* 适当增加内边距 */
+  flex-grow: 1;
 }
+
 </style>
