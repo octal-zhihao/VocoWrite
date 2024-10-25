@@ -2,6 +2,62 @@
 
 ### building
 
+> 一共三个核心任务：语音识别、机器翻译、文本摘要，中期以网站开发和API调用为主
+
+中期任务分配：
+llz：
+- 继续完成前端项目的主要工作界面，并制作好桌面应用
+- 实现本地部署`语音识别`大模型方案（可选，如果时间来不及就算了）
+- 实现本地部署`机器翻译`大模型方案
+
+zzh：
+- 实现简易版django后端代码，基础实现前后端的对接
+- 实现 `机器翻译` transformer方案
+- 实现 `文本摘要` transformer方案（可选）
+
+wzk：
+- 用API先做个简易控制台程序，跑通流程
+
+
+### 语音识别技术
+
+> wzk
+
+远程调用API：暂定讯飞开放者平台（实时）
+
+> llz
+
+部署大模型：暂定使用whisper
+https://github.com/openai/whisper
+https://github.com/Const-me/Whisper
+https://new.qq.com/rain/a/20241003A02SW400
+https://zhuanlan.zhihu.com/p/680412927
+
+### 机器翻译
+
+> wzk
+
+试一下智谱AI的API方案：https://github.com/datawhalechina/hugging-llm
+
+> zzh
+
+先做一个调包 transformer 的预训练模型确保有个东西能翻译
+
+期中后，自己训练transformer
+https://www.bilibili.com/video/BV1Sg411y7R2/?spm_id_from=333.788.recommend_more_video.6&vd_source=a048fdb9870f54f84d13ff48a9100916
+
+
+###  文本摘要
+
+> wzk
+
+试一下智谱AI的API方案：https://github.com/datawhalechina/hugging-llm
+（有找到其他的在这里补充）
+
+> zzh
+
+先做一个调包 transformer ，不一定能成
+
 一个以 `讯飞听见` 为模板的会议记录app
 
 
