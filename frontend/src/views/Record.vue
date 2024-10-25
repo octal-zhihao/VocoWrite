@@ -1,173 +1,193 @@
 <template>
-    <div class="record">
-      <!-- 顶部返回按钮 -->
-      <div class="header">
-        <button @click="goBack" class="back-button">返回</button>
-        <h2>录音界面</h2>
-      </div>
-  
-      <!-- 录音状态和计时器 -->
-      <div class="status">
-        <p>{{ isRecording ? '录音中...' : '录音已停止' }}</p>
-        <p>录音时长: {{ formatTime(elapsedTime) }}</p>
-      </div>
-  
-      <!-- 录音控制按钮 -->
-      <div class="controls">
-        <button @click="startRecording" :disabled="isRecording" class="control-button">开始录音</button>
-        <button @click="pauseRecording" :disabled="!isRecording" class="control-button">暂停录音</button>
-        <button @click="stopRecording" :disabled="!isRecording" class="control-button">停止录音</button>
-        <button @click="playRecording" :disabled="!audioUrl" class="control-button">播放录音</button>
-      </div>
-  
-      <!-- 录音播放 -->
-      <div v-if="audioUrl" class="audio-player">
-        <audio :src="audioUrl" controls></audio>
-      </div>
+  <div class="record">
+    <!-- 顶部返回按钮 -->
+    <div class="header">
+      <button @click="goBack" class="back-button">返回</button>
+      <h2>录音界面</h2>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'Record',
-    data() {
-      return {
-        mediaRecorder: null,     // 用于录音的MediaRecorder实例
-        audioChunks: [],         // 存储录音的音频数据
-        audioUrl: null,          // 录音生成的音频URL
-        isRecording: false,      // 录音状态
-        timer: null,             // 计时器
-        elapsedTime: 0,          // 录音时间
-      };
-    },
-    methods: {
-      // 格式化录音时间
-      formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-      },
-  
-      // 返回上一页面
-      goBack() {
-        this.$router.go(-1);
-      },
-  
-      // 开始录音
-      startRecording() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          alert('当前浏览器不支持录音功能');
-          return;
-        }
-  
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-          this.mediaRecorder = new MediaRecorder(stream);
-          this.audioChunks = [];
-          this.isRecording = true;
-          this.elapsedTime = 0;
-  
-          // 开始计时
-          this.timer = setInterval(() => {
-            this.elapsedTime += 1;
-          }, 1000);
-  
-          this.mediaRecorder.ondataavailable = event => {
-            this.audioChunks.push(event.data);
-          };
-  
-          // 当录音结束时生成音频URL
-          this.mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(this.audioChunks, { type: 'audio/mp3' });
-            this.audioUrl = URL.createObjectURL(audioBlob);
-          };
-  
-          this.mediaRecorder.start();
-        }).catch(error => {
-          console.error('无法访问麦克风: ', error);
-          alert('无法访问麦克风');
-        });
-      },
-  
-      // 暂停录音
-      pauseRecording() {
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-          this.mediaRecorder.pause();
-          this.isRecording = false;
-          clearInterval(this.timer);
-        }
-      },
-  
-      // 停止录音
-      stopRecording() {
-        if (this.mediaRecorder && (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
-          this.mediaRecorder.stop();
-          this.isRecording = false;
-          clearInterval(this.timer);
-        }
-      },
-  
-      // 播放录音
-      playRecording() {
-        if (this.audioUrl) {
-          const audio = new Audio(this.audioUrl);
-          audio.play();
-        }
-      }
-    }
+
+    <!-- 录音状态和计时器 -->
+    <div class="status">
+      <p v-if="isPaused">录音已暂停</p>
+      <p v-else>{{ isRecording ? '录音中...' : '录音已停止' }}</p>
+      <p>录音时长: {{ formatTime(elapsedTime) }}</p>
+    </div>
+
+
+    <!-- 录音控制按钮 -->
+    <div class="controls">
+      <button @click="startRecording" :disabled="isRecording || isPaused" class="control-button">开始录音</button>
+      <button @click="pauseRecording" :disabled="!isRecording" class="control-button">暂停录音</button>
+      <button v-if="isPaused" @click="resumeRecording" class="control-button">继续录音</button>
+      <button @click="stopRecording" :disabled="!isRecording && !isPaused" class="control-button">停止录音</button>
+      <button @click="playRecording" :disabled="!audioUrl" class="control-button">播放录音</button>
+    </div>
+
+    <!-- 录音播放 -->
+    <div v-if="audioUrl" class="audio-player">
+      <audio :src="audioUrl" controls></audio>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+name: 'Record',
+data() {
+  return {
+    mediaRecorder: null,     // 用于录音的MediaRecorder实例
+    audioChunks: [],         // 存储录音的音频数据
+    audioUrl: null,          // 录音生成的音频URL
+    isRecording: false,      // 录音状态
+    isPaused: false,         // 暂停状态
+    timer: null,             // 计时器
+    elapsedTime: 0,          // 录音时间
   };
-  </script>
-  
-  <style scoped>
-  .record {
-    padding: 20px;
-    background-color: #f5f7fa;
-    text-align: center;
+},
+methods: {
+  // 格式化录音时间
+  formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  },
+
+  // 返回上一页面
+  goBack() {
+    this.$router.go(-1);
+  },
+
+  // 开始录音
+  startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('当前浏览器不支持录音功能');
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.audioChunks = [];
+      this.isRecording = true;
+      this.isPaused = false;
+      this.elapsedTime = 0;
+
+      // 开始计时
+      this.timer = setInterval(() => {
+        this.elapsedTime += 1;
+      }, 1000);
+
+      this.mediaRecorder.ondataavailable = event => {
+        this.audioChunks.push(event.data);
+      };
+
+      // 当录音结束时生成音频URL
+      this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/mp3' });
+        this.audioUrl = URL.createObjectURL(audioBlob);
+      };
+
+      this.mediaRecorder.start();
+    }).catch(error => {
+      console.error('无法访问麦克风: ', error);
+      alert('无法访问麦克风');
+    });
+  },
+
+  // 暂停录音
+  pauseRecording() {
+    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+      this.mediaRecorder.pause();
+      this.isRecording = false;
+      this.isPaused = true;
+      clearInterval(this.timer);
+    }
+  },
+
+  // 继续录音
+  resumeRecording() {
+    if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+      this.mediaRecorder.resume();
+      this.isRecording = true;
+      this.isPaused = false;
+
+      // 继续计时
+      this.timer = setInterval(() => {
+        this.elapsedTime += 1;
+      }, 1000);
+    }
+  },
+
+  // 停止录音
+  stopRecording() {
+    if (this.mediaRecorder && (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+      this.isPaused = false;
+      clearInterval(this.timer);
+    }
+  },
+
+  // 播放录音
+  playRecording() {
+    if (this.audioUrl) {
+      const audio = new Audio(this.audioUrl);
+      audio.play();
+    }
   }
-  
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .back-button {
-    padding: 8px 12px;
-    background-color: #4285f4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .status {
-    margin-bottom: 20px;
-    font-size: 1.2em;
-  }
-  
-  .controls {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  
-  .control-button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .control-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  .audio-player {
-    margin-top: 20px;
-  }
-  </style>
-  
+}
+};
+</script>
+
+<style scoped>
+.record {
+padding: 20px;
+background-color: #f5f7fa;
+text-align: center;
+}
+
+.header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.back-button {
+padding: 8px 12px;
+background-color: #4285f4;
+color: white;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+}
+
+.status {
+margin-bottom: 20px;
+font-size: 1.2em;
+}
+
+.controls {
+display: flex;
+justify-content: center;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.control-button {
+padding: 10px 15px;
+background-color: #007bff;
+color: white;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+}
+
+.control-button:disabled {
+background-color: #ccc;
+cursor: not-allowed;
+}
+
+.audio-player {
+margin-top: 20px;
+}
+</style>
