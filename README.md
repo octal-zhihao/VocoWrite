@@ -28,9 +28,13 @@ wzk：
 > llz
 
 部署大模型：暂定使用whisper
+
 https://github.com/openai/whisper
+
 https://github.com/Const-me/Whisper
+
 https://new.qq.com/rain/a/20241003A02SW400
+
 https://zhuanlan.zhihu.com/p/680412927
 
 ### 机器翻译
