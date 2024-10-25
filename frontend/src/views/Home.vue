@@ -61,17 +61,10 @@ export default {
 </script>
 
 <style scoped>
-/* 样式可以根据你的需求进行调整 */
 .home {
   padding: 20px;
   background-color: #f5f7fa;
-}
-
-.search-bar {
-  padding: 10px;
-  width: 250px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 10px; /* 添加圆角 */
 }
 
 .actions {
@@ -90,18 +83,38 @@ export default {
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.action-button i {
-  margin-right: 8px;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 .action-button:hover {
   background-color: #357ae8;
+  transform: translateY(-2px); /* 鼠标悬停轻微抬起效果 */
 }
 
 .file-list {
   margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* 增加文件间距 */
+}
+
+.file-table {
+  background-color: #ffffff; /* 文件列表背景 */
+  border-radius: 10px; /* 圆角 */
+  padding: 15px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.3s;
+}
+
+.file-item:hover {
+  background-color: #f0f0f0; /* 悬停背景色 */
 }
 </style>

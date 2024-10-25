@@ -35,28 +35,31 @@ export default {
 </script>
 
 <style scoped>
+.record-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .action-button {
-  padding: 10px 20px;
-  background-color: #4285f4; /* 统一背景颜色 */
+  padding: 15px 30px;
+  background-color: #e74c3c;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 .action-button:hover {
-  background-color: #357ae8;
-}
-
-.is-recording {
-  background-color: #ff4b5c; /* 录音时的背景颜色 */
+  background-color: #c0392b; /* 鼠标悬停颜色 */
+  transform: scale(1.05); /* 鼠标悬停放大效果 */
 }
 
 .recording-status {
   margin-top: 10px;
-  color: #ff4b5c;
+  color: #e74c3c;
   font-weight: bold;
 }
 </style>

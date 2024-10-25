@@ -41,14 +41,15 @@ export default {
   flex-direction: column;
   background-color: white;
   margin-left: 15px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2); 
+  border-radius: 10px;
   overflow: hidden;
 }
 
+
 .content {
-  margin-top: 60px; /* 确保内容不被固定的Header遮挡，60px是Header的高度 */
-  padding: 20px 30px; /* 适当增加内边距 */
+  margin-top: 10px;
+  padding: 0px 30px; /* 适当增加内边距 */
   flex-grow: 1;
 }
 

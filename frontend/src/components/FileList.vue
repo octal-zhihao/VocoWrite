@@ -20,8 +20,8 @@
       return {
         searchQuery: '',
         files: [
-          { id: 1, name: '星贡区兴园路5号', status: '转写完成', date: '2024/10/19 18:40' },
-          { id: 2, name: '某会议音频.mp3', status: '转写完成', date: '2024/10/19 18:41' },
+          { id: 1, name: '某会议录音1.mp3', status: '转写完成', date: '2024/10/19 18:40' },
+          { id: 2, name: '某会议音频2.mp3', status: '转写完成', date: '2024/10/19 18:41' },
           // 更多文件数据...
         ],
       };
@@ -44,30 +44,36 @@
   </script>
   
   <style scoped>
-  .file-list {
-    padding: 20px;
-  }
-  
-  
-  .search-bar input {
-    width: 200px;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .file-table {
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 10px;
-  }
-  
-  .file-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-  }
-  </style>
-  
+.file-list {
+  padding: 20px;
+}
+
+.file-table {
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.3s;
+}
+
+.file-item:hover {
+  background-color: #f0f0f0; /* 悬停效果 */
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-date {
+  font-size: 0.9em;
+  color: gray;
+}
+</style>
