@@ -1,7 +1,9 @@
 <template>
   <div class="app-container">
+    <!-- 侧边栏折叠按钮 -->
+    <button class="toggle-sidebar-btn" @click="toggleSidebar">☰</button>
     <!-- 引入侧边栏组件 -->
-    <Sidebar />
+    <Sidebar :class="{ active: isSidebarVisible }" />
 
     <!-- 主内容区域 -->
     <div class="main-container">
@@ -25,7 +27,17 @@ export default {
     Sidebar,
     Header,
   },
-};
+  data() {
+      return {
+        isSidebarVisible: false // 默认隐藏侧边栏
+      };
+    },
+    methods: {
+      toggleSidebar() {
+        this.isSidebarVisible = !this.isSidebarVisible; // 切换侧边栏状态
+      }
+    }
+  };
 </script>
 
 <style>
@@ -46,11 +58,42 @@ export default {
   overflow: hidden;
 }
 
-
 .content {
   margin-top: 10px;
   padding: 0px 30px; /* 适当增加内边距 */
   flex-grow: 1;
 }
 
+.toggle-sidebar-btn {
+  display: none; /* 默认隐藏 */
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2000;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* 媒体查询，适应小屏幕设备 */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-container {
+    margin-left: 0;
+  }
+  
+  .content {
+    padding: 10px; /* 减小内边距 */
+  }
+
+  .toggle-sidebar-btn {
+    display: block; /* 小屏幕显示按钮 */
+  }
+}
 </style>

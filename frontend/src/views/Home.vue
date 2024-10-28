@@ -62,7 +62,8 @@ export default {
     },
     // 导入文件的逻辑
     importFile() {
-      alert('文件导入功能尚未实现');
+      this.$router.push('/file-import');
+      // alert('文件导入功能尚未实现');
     }
   }
 };

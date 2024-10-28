@@ -147,3 +147,32 @@ body {
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
+
+/* 全局样式 */
+.sidebar {
+  width: 250px; /* 默认宽度 */
+  transition: transform 0.3s ease; /* 侧边栏滑出动画 */
+}
+
+/* 在小屏幕上默认隐藏侧边栏 */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%); /* 移出屏幕 */
+    position: fixed; /* 固定位置 */
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 1000;
+    background-color: #fff; /* 背景色 */
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.5); /* 阴影效果 */
+  }
+
+  .sidebar.active {
+    transform: translateX(0); /* 显示侧边栏 */
+  }
+
+  /* 主内容区增加间距 */
+  .main-content {
+    margin-left: 0; /* 移动端不留出侧边栏空间 */
+  }
+}
