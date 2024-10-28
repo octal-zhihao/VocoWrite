@@ -16,10 +16,6 @@ from tool import pcm2wav
 import pyaudio
 
 
-'''
- 1、同声传译接口，可以将音频流实时翻译为不同语种的文本，并输对应的音频内容，广泛应用于国际论坛、智能会议、智慧教育、跨国交流等场景。
- '''
-
 STATUS_FIRST_FRAME = 0  # 第一帧的标识
 STATUS_CONTINUE_FRAME = 1  # 中间帧标识
 STATUS_LAST_FRAME = 2  # 最后一帧的标识

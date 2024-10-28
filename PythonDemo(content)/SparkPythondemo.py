@@ -19,10 +19,9 @@ Spark_url = "wss://spark-api.xf-yun.com/chat/max-32k"   # Max服务地址
 # 初始上下文内容，当前可传system、user、assistant 等角色
 text = [
     {"role": "system",
-     "content": "假定你现在是一名记者，你的任务是把用户的每一次输入的文本进行总结凝练概括，要求输出的文字数量大约为20个字左右"}
+     "content": "假定你现在是一名会议记录员，你的任务是把我输入的会议记录文稿做一个会议纪要，以“本次会议的主题为：......，具体内容如下：”作为开头字数根据输入量的大小可任意调整"
+    }
 ]
-text1 = {"role": "system",
-     "content": "假定你现在是一名记者，你的任务是把用户的每一次输入的文本进行总结凝练概括，要求输出的文字数量大约为20个字左右"}
 
 def getText(role, content):
     jsoncon = {"role": role, "content": content}
@@ -76,7 +75,7 @@ if __name__ == '__main__':
 
             # 仅将 Spark API 的响应内容写入输出文件
             with open(output_filename, "a", encoding="utf-8") as outfile:
-                outfile.write(f"星火: {SparkApi.answer}\n\n")
+                outfile.write(SparkApi.answer)
 
             # 删除最后一项（即最新的回答）以控制上下文长度
             text.pop()
