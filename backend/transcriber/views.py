@@ -47,13 +47,18 @@ def transcribe_audio(request):
             # 执行转录任务
             result = model.transcribe(temp_wav_file_path, task='translate' if language == "english" else 'transcribe', language=language)
             transcription = result['text']
-            simplified_text = convert_traditional_to_simplified(transcription)
-            # 按句号分割文本并换行
-            sentences = simplified_text.split('。')
+            
+            # 根据语言选择句子分割符
+            if language == "english":
+                sentences = transcription.split('.')
+            else:  # 默认是中文
+                simplified_text = convert_traditional_to_simplified(transcription)
+                sentences = simplified_text.split('。')
             formatted_result = []
             for sentence in sentences:
                 if sentence:  # 确保句子不为空
-                    formatted_result.append(sentence.strip() + '。')
+                    formatted_result.append(sentence.strip() + ('。' if language == "chinese" else '.'))
+
 
             # 将格式化结果作为响应返回
             return Response({'transcription': "\n".join(formatted_result)})

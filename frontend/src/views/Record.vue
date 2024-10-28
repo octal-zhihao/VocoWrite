@@ -1,33 +1,27 @@
 <template>
   <div class="record">
-    <!-- 顶部返回按钮 -->
     <div class="header">
       <button @click="goBack" class="back-button">返回</button>
       <h2>录音界面</h2>
     </div>
 
-    <!-- 录音状态和计时器 -->
     <div class="status">
       <p v-if="isPaused">录音已暂停</p>
       <p v-else>{{ isRecording ? '录音中...' : '录音已停止' }}</p>
       <p>录音时长: {{ formatTime(elapsedTime) }}</p>
     </div>
 
-    <!-- 录音控制按钮 -->
     <div class="controls">
-      <button @click="startRecording" :disabled="isRecording || isPaused" class="control-button">开始录音</button>
+      <button @click="startRecording" :disabled="isRecording" class="control-button">开始录音</button>
       <button @click="pauseRecording" :disabled="!isRecording" class="control-button">暂停录音</button>
       <button v-if="isPaused" @click="resumeRecording" class="control-button">继续录音</button>
       <button @click="stopRecording" :disabled="!isRecording && !isPaused" class="control-button">停止录音</button>
-      <button @click="playRecording" :disabled="!audioUrl" class="control-button">播放录音</button>
     </div>
 
-    <!-- 录音播放 -->
     <div v-if="audioUrl" class="audio-player">
       <audio :src="audioUrl" controls></audio>
     </div>
 
-    <!-- 可编辑文本框 -->
     <div class="editable-section">
       <div
         contenteditable="true"
@@ -55,20 +49,20 @@ export default {
       timer: null,
       elapsedTime: 0,
       inputText: '',
-      isFocused: false, 
+      isFocused: false,
     };
   },
   methods: {
     updateText(event) {
-      this.inputText = event.target.innerText; // 更新输入文本
+      this.inputText = event.target.innerText;
     },
     
     handleFocus() {
-      this.isFocused = true; // 设置焦点状态为 true
+      this.isFocused = true;
     },
 
     handleBlur() {
-      this.isFocused = false; // 设置焦点状态为 false
+      this.isFocused = false;
     },
 
     formatTime(seconds) {
@@ -81,13 +75,14 @@ export default {
       this.$router.go(-1);
     },
 
-    startRecording() {
+    async startRecording() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('当前浏览器不支持录音功能');
         return;
       }
 
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         this.mediaRecorder = new MediaRecorder(stream);
         this.audioChunks = [];
         this.isRecording = true;
@@ -98,7 +93,7 @@ export default {
           this.elapsedTime += 1;
         }, 1000);
 
-        this.mediaRecorder.ondataavailable = event => {
+        this.mediaRecorder.ondataavailable = (event) => {
           this.audioChunks.push(event.data);
         };
 
@@ -108,10 +103,10 @@ export default {
         };
 
         this.mediaRecorder.start();
-      }).catch(error => {
+      } catch (error) {
         console.error('无法访问麦克风: ', error);
         alert('无法访问麦克风');
-      });
+      }
     },
 
     pauseRecording() {
@@ -143,13 +138,14 @@ export default {
         clearInterval(this.timer);
       }
     },
-
-    playRecording() {
-      if (this.audioUrl) {
-        const audio = new Audio(this.audioUrl);
-        audio.play();
-      }
+  },
+  beforeDestroy() {
+    if (this.mediaRecorder) {
+      this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      this.mediaRecorder.ondataavailable = null;
+      this.mediaRecorder.onstop = null;
     }
+    clearInterval(this.timer);
   }
 };
 </script>
@@ -201,10 +197,6 @@ export default {
 .control-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
-}
-
-.audio-player {
-  margin-top: 20px;
 }
 
 .editable-section {

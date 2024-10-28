@@ -56,13 +56,16 @@ export default {
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2); 
   border-radius: 10px;
   overflow: hidden;
+  height: calc(100vh - 20px); /* 适当调整高度 */
 }
 
 .content {
   margin-top: 10px;
   padding: 0px 30px; /* 适当增加内边距 */
   flex-grow: 1;
+  overflow-y: auto; /* 允许纵向滚动 */
 }
+
 
 .toggle-sidebar-btn {
   display: none; /* 默认隐藏 */

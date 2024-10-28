@@ -23,7 +23,19 @@
     <!-- 显示转录结果 -->
     <div v-if="transcription" class="transcription-card">
       <h3>转录结果:</h3>
-      <pre class="transcription">{{ transcription }}</pre>  <!-- 使用 <pre> 标签保留换行格式 -->
+      <pre class="transcription">
+        <template v-if="selectedLanguage === 'chinese'">
+          {{ transcription }}
+        </template>
+        <template v-else>
+          <div v-for="(sentence, index) in originalSentences" :key="index">
+            <div v-if="sentence.trim() !== ''">{{ sentence }}.</div>
+            <div v-if="translatedSentences[index] && translatedSentences[index].trim() !== ''">
+              {{ translatedSentences[index] }}  <!-- 显示对应的中文翻译 -->
+            </div>
+          </div>
+        </template>
+      </pre>
       
       <!-- 导出按钮 -->
       <div class="export-buttons">
@@ -50,8 +62,10 @@ export default {
     return {
       importStatus: '',
       selectedFile: null,
+      selectedLanguage: '', // 存储用户选择的语言
       transcription: '', // 存储转录结果
       showLanguage: false, // 控制语言选择弹窗的显示
+      bilingualTranslations: [] // 初始化双语翻译结果
     };
   },
   methods: {
@@ -76,7 +90,7 @@ export default {
       this.showLanguage = false; // 立即关闭弹窗
       if (this.selectedFile) {
         this.importStatus = `正在转录文件 "${this.selectedFile.name}"...`;
-        
+        this.selectedLanguage = language;
         const formData = new FormData();
         formData.append('audio', this.selectedFile); // 将音频文件添加到 FormData
         formData.append('language', language); // 添加语言选择
@@ -91,6 +105,9 @@ export default {
             const data = await response.json();
             this.transcription = data.transcription; // 假设返回的 JSON 包含转录结果
             this.importStatus = '文件转录完成！';
+
+            // 调用翻译 API
+            await this.translateTranscription(this.transcription);
           } else {
             this.importStatus = '转录失败，请重试。';
           }
@@ -100,6 +117,33 @@ export default {
         }
       }
     },
+    async translateTranscription(transcription) {
+      this.originalSentences = transcription.split('.').map(sentence => sentence.trim()).filter(Boolean);
+      this.translatedSentences = []; // 清空翻译数组
+
+      for (const sentence of this.originalSentences) {
+        try {
+          let response = await fetch('http://127.0.0.1:8000/translate/api/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: sentence }),
+          });
+
+          if (response.ok) {
+            const translatedData = await response.json();
+            const translatedSentence = translatedData.translated_text;
+            this.translatedSentences.push(translatedSentence);
+          } else {
+            console.error('翻译失败:', response.statusText);
+          }
+        } catch (error) {
+          console.error('翻译过程中出现错误:', error);
+        }
+      }
+    },
+
     exportTranscription(format) {
       let blob;
       const filename = `transcription.${format}`;
@@ -136,7 +180,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
   .file-import {
@@ -187,18 +230,15 @@ export default {
     cursor: pointer;
   }
 
-  .control-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-
   .transcription-card {
     background-color: white;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Microsoft YaHei', sans-serif;
+    font-size: 18px;
     padding: 20px;
     margin-top: 20px;
-    text-align: left;  /* 使转录结果左对齐 */
+    text-align: left;
   }
 
   .transcription-card h3 {
@@ -206,9 +246,9 @@ export default {
   }
 
   .transcription-card pre {
-    white-space: pre-wrap; /* 保留换行 */
+    white-space: pre-wrap;
     line-height: 1.5;
-    text-align: left; /* 使文本左对齐 */
+    text-align: left;
   }
 
   .language-modal {
@@ -226,6 +266,7 @@ export default {
     z-index: 1000;
     text-align: center;
   }
+
   .export-buttons {
     margin-top: 20px;
     display: flex;
@@ -233,12 +274,12 @@ export default {
     gap: 10px;
   }
 
-.export-button {
-  padding: 10px 15px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+  .export-button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
 </style>
