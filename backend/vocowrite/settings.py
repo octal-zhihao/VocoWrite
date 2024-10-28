@@ -54,7 +54,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # 前端地址
+    "http://localhost:5174",  # 前端地址
 ]
 
 ROOT_URLCONF = "vocowrite.urls"
