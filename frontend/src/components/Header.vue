@@ -53,7 +53,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  height: 60px;
+  height: 40px;
   background-color: #3498db;
   color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -118,4 +118,5 @@ export default {
 .dropdown-menu li:hover {
   background-color: #f0f0f0;
 }
+
 </style>

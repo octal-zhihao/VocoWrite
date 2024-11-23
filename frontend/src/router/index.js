@@ -19,7 +19,6 @@ const routes = [
     name: 'FileImport',
     component: FileImport,
   },
-  // 其他页面...
 ];
 
 const router = createRouter({

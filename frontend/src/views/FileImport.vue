@@ -23,26 +23,26 @@
     <!-- 显示转录结果 -->
     <div v-if="transcription" class="transcription-card">
       <h3>转录结果:</h3>
-      <pre class="transcription">
-        <template v-if="selectedLanguage === 'chinese'">
-          {{ transcription }}
-        </template>
-        <template v-else>
-          <div v-for="(sentence, index) in originalSentences" :key="index">
-            <div v-if="sentence.trim() !== ''">{{ sentence }}.</div>
-            <div v-if="translatedSentences[index] && translatedSentences[index].trim() !== ''">
-              {{ translatedSentences[index] }}  <!-- 显示对应的中文翻译 -->
-            </div>
-          </div>
-        </template>
-      </pre>
-      
-      <!-- 导出按钮 -->
       <div class="export-buttons">
         <button @click="exportTranscription('txt')" class="export-button">导出为 TXT</button>
         <button @click="exportTranscription('docx')" class="export-button">导出为 DOCX</button>
         <button @click="exportTranscription('md')" class="export-button">导出为 MD</button>
       </div>
+      <pre class="transcription">
+        <template v-if="selectedLanguage === 'chinese'">
+          <div v-for="(sentence, index) in filteredOriginalSentences" :key="index" class="sentence">
+            <div>{{ sentence }}</div>
+          </div>
+        </template>
+        <template v-else>
+          <div v-for="(sentence, index) in filteredOriginalSentences" :key="index" class="sentence">
+            <div v-if="sentence.trim() !== ''">{{ sentence }}</div>
+            <div v-if="translatedSentences[index] && translatedSentences[index].trim() !== ''">
+              {{ translatedSentences[index] }} <!-- 显示对应的中文翻译 -->
+            </div>
+          </div>
+        </template>
+      </pre>
     </div>
 
     <!-- 语言选择弹窗 -->
@@ -65,8 +65,16 @@ export default {
       selectedLanguage: '', // 存储用户选择的语言
       transcription: '', // 存储转录结果
       showLanguage: false, // 控制语言选择弹窗的显示
-      bilingualTranslations: [] // 初始化双语翻译结果
+      bilingualTranslations: [], // 初始化双语翻译结果
+      originalSentences: [], // 存储原始转录结果的句子
+      translatedSentences: [] // 存储翻译后的句子
     };
+  },
+  computed: {
+    filteredOriginalSentences() {
+      // 过滤掉空行或仅有空格的行
+      return this.originalSentences.filter(sentence => sentence.trim() !== '');
+    }
   },
   methods: {
     goBack() {
@@ -106,6 +114,9 @@ export default {
             this.transcription = data.transcription; // 假设返回的 JSON 包含转录结果
             this.importStatus = '文件转录完成！';
 
+            // 将转录文本按句子分割
+            this.originalSentences = this.transcription.split('.').map(sentence => sentence.trim());
+
             // 调用翻译 API
             await this.translateTranscription(this.transcription);
           } else {
@@ -118,7 +129,6 @@ export default {
       }
     },
     async translateTranscription(transcription) {
-      this.originalSentences = transcription.split('.').map(sentence => sentence.trim()).filter(Boolean);
       this.translatedSentences = []; // 清空翻译数组
 
       for (const sentence of this.originalSentences) {
@@ -182,104 +192,121 @@ export default {
 </script>
 
 <style scoped>
-  .file-import {
-    padding: 20px;
-    background-color: #ecf4ff;
-    text-align: center;
-  }
+.file-import {
+  padding: 20px;
+  height: 90vh;
+  background-color: #ecf4ff;
+  text-align: center;
+}
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
 
-  .back-button {
-    padding: 8px 12px;
-    background-color: #4285f4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+.back-button {
+  padding: 12px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2em;
+  transition: background-color 0.3s;
+}
 
-  .controls {
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
+.back-button:hover {
+  background-color: #357ae8;
+}
 
-  .file-input-label {
-    display: inline-block;
-    cursor: pointer;
-    position: relative;
-  }
+.back-button i {
+  font-size: 1.5em;
+}
 
-  .file-input {
-    display: none;
-  }
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
 
-  .control-button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+.file-input-label {
+  display: inline-block;
+  cursor: pointer;
+  position: relative;
+}
 
-  .transcription-card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    font-family: 'Microsoft YaHei', sans-serif;
-    font-size: 18px;
-    padding: 20px;
-    margin-top: 20px;
-    text-align: left;
-  }
+.file-input {
+  display: none;
+}
 
-  .transcription-card h3 {
-    margin-bottom: 10px;
-  }
+.control-button {
+  padding: 12px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2em;
+  transition: background-color 0.3s;
+}
 
-  .transcription-card pre {
-    white-space: pre-wrap;
-    line-height: 1.5;
-    text-align: left;
-  }
+.language-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: absolute;
+  top: 100px;
+  right: 300px;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 200px;
+}
 
-  .language-modal {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    position: absolute;
-    top: 100px;
-    right: 300px;
-    background-color: white;
-    padding: 20px;
-    width: 200px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    z-index: 1000;
-    text-align: center;
-  }
+.language-modal h3 {
+  text-align: center;
+}
 
-  .export-buttons {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
+.export-buttons {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+}
 
-  .export-button {
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+.export-button {
+  background-color: #00c853;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.transcription-card {
+  text-align: left;
+}
+
+.transcription {
+  white-space: pre-line;
+  font-size: 1.2em;
+  color: #333;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  overflow-y: auto;
+  max-height: 300px; /* 设置最大高度 */
+  height: auto; /* 允许内容自适应高度 */
+}
+.sentence {
+  margin: -10px 0;  /* 调整每行之间的间距 */
+  line-height: 1.3; /* 设置行间距，减少此值会使行间距更紧凑 */
+}
 </style>

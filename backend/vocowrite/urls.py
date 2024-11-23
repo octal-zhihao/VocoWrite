@@ -21,4 +21,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('transcribe/', include('transcriber.urls')),
     path('translate/', include('translation.urls')),
+    path('summarize/', include('summarizer.urls')),
 ]

@@ -60,15 +60,21 @@ export default {
     selectSubMenu(subMenu) {
       this.selectedSubMenu = subMenu;
       this.selectedMenu = 'meeting'; // 保证“会记文件”处于选中状态
+      this.$emit('subMenuSelected', subMenu);  // 向父组件传递选中的子菜单
     },
   },
 };
 </script>
 
+
 <style scoped>
+
+.app-title {
+  font-size: 20px;
+  font-weight: bold;
+}
 .sidebar {
   width: 200px;
-  background-color: #eef1f6;
   padding: 20px;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 0 8px 8px 0;

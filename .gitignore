@@ -163,7 +163,5 @@ cython_debug/
 
 mT5_multilingual_XLSum/
 
-PythonDemo(content)/output/
-PythonDemo(content)/input/
-simultaneous_translation_python_demo/output/
-simultaneous_translation_python_demo/input/
+/PythonDemo(content)/
+/simultaneous_translation_python_demo/
