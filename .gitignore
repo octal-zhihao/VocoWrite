@@ -165,3 +165,6 @@ mT5_multilingual_XLSum/
 
 /PythonDemo(content)/
 /simultaneous_translation_python_demo/
+backend/summarizer/CLTS
+backend/summarizer/train.py
+testapi.py

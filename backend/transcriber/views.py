@@ -1,21 +1,16 @@
-# transcriber/views.py
-
 import os
 import logging
 import tempfile
-import whisper
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from pydub import AudioSegment
 import time
-from .utils import convert_traditional_to_simplified
+from .utils import get_transcription
 # 配置日志记录
 logger = logging.getLogger(__name__)
 
-# 加载 Whisper 模型
-model = whisper.load_model("base")
 
 @api_view(['POST'])
 def transcribe_audio(request):
@@ -43,17 +38,13 @@ def transcribe_audio(request):
                 audio.export(temp_wav_file.name, format="wav")
                 
             temp_wav_file_path = temp_wav_file.name
-            
-            # 执行转录任务
-            result = model.transcribe(temp_wav_file_path, task='translate' if language == "english" else 'transcribe', language=language)
-            transcription = result['text']
-            
             # 根据语言选择句子分割符
             if language == "english":
+                transcription = get_transcription(temp_wav_file_path)
                 sentences = transcription.split('.')
             else:  # 默认是中文
-                simplified_text = convert_traditional_to_simplified(transcription)
-                sentences = simplified_text.split('。')
+                transcription = get_transcription(temp_wav_file_path)
+                sentences = transcription.split('。')
             formatted_result = []
             for sentence in sentences:
                 if sentence:  # 确保句子不为空

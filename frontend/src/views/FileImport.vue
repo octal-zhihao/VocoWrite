@@ -3,7 +3,7 @@
     <!-- 顶部返回按钮 -->
     <div class="header">
       <button @click="goBack" class="back-button">返回</button>
-      <h2>导入文件</h2>
+      <h2>导入本地会议音频</h2>
     </div>
 
     <!-- 文件导入控制 -->
@@ -13,36 +13,61 @@
         <input type="file" @change="handleFileUpload" class="file-input" />
       </label>
       <button @click="showLanguageSelection" class="control-button">导入</button>
+      <button @click="generateSummary" class="control-button">生成总结</button>
     </div>
 
     <!-- 显示导入状态 -->
     <div v-if="importStatus" class="status">
       <p>{{ importStatus }}</p>
     </div>
+    <!-- 进度条 -->
+    <div v-if="isProcessing" class="progress-container">
+      <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+    </div>
 
-    <!-- 显示转录结果 -->
+    <!-- 转录结果和总结标签切换 -->
     <div v-if="transcription" class="transcription-card">
-      <h3>转录结果:</h3>
-      <div class="export-buttons">
-        <button @click="exportTranscription('txt')" class="export-button">导出为 TXT</button>
-        <button @click="exportTranscription('docx')" class="export-button">导出为 DOCX</button>
-        <button @click="exportTranscription('md')" class="export-button">导出为 MD</button>
+      <div class="tabs">
+        <button :class="{ active: activeTab === 'transcription' }" @click="activeTab = 'transcription'">转录结果</button>
+        <button :class="{ active: activeTab === 'summary' }" @click="activeTab = 'summary'">总结结果</button>
       </div>
-      <pre class="transcription">
-        <template v-if="selectedLanguage === 'chinese'">
-          <div v-for="(sentence, index) in filteredOriginalSentences" :key="index" class="sentence">
-            <div>{{ sentence }}</div>
-          </div>
-        </template>
-        <template v-else>
-          <div v-for="(sentence, index) in filteredOriginalSentences" :key="index" class="sentence">
-            <div v-if="sentence.trim() !== ''">{{ sentence }}</div>
-            <div v-if="translatedSentences[index] && translatedSentences[index].trim() !== ''">
-              {{ translatedSentences[index] }} <!-- 显示对应的中文翻译 -->
+
+      <!-- 转录内容 -->
+      <div v-if="activeTab === 'transcription'">
+        <div class="export-buttons">
+          <button @click="exportTranscription('txt')" class="export-button">导出为 TXT</button>
+          <button @click="exportTranscription('docx')" class="export-button">导出为 DOCX</button>
+          <button @click="exportTranscription('md')" class="export-button">导出为 MD</button>
+        </div>
+        <pre class="transcription">
+          <template v-if="selectedLanguage === 'chinese'">
+            <div v-for="(sentence, index) in filteredOriginalSentences" :key="index" class="sentence">
+              <div>{{ sentence + "。" }}</div>
             </div>
-          </div>
-        </template>
-      </pre>
+          </template>
+          <template v-else>
+            <div v-for="(sentence, index) in filteredOriginalSentences" :key="index" class="sentence">
+              <div v-if="sentence.trim() !== ''">{{ sentence + "."}}</div>
+              <div v-if="translatedSentences[index] && translatedSentences[index].trim() !== ''">
+                {{ translatedSentences[index] + "。"}} <!-- 显示对应的中文翻译 -->
+              </div>
+            </div>
+          </template>
+        </pre>
+      </div>
+
+      <!-- 总结内容 -->
+      <div v-if="activeTab === 'summary'">
+        <div class="export-buttons">
+          <button @click="exportSummary('txt')" class="export-button">导出为 TXT</button>
+          <button @click="exportSummary('docx')" class="export-button">导出为 DOCX</button>
+          <button @click="exportSummary('md')" class="export-button">导出为 MD</button>
+        </div>
+        <div class="summary">
+          <!-- 这里展示生成的总结 -->
+          <p>{{ summary }}</p>
+        </div>
+      </div>
     </div>
 
     <!-- 语言选择弹窗 -->
@@ -56,6 +81,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   name: 'FileImport',
   data() {
@@ -64,15 +90,18 @@ export default {
       selectedFile: null,
       selectedLanguage: '', // 存储用户选择的语言
       transcription: '', // 存储转录结果
+      translatedTranscription: '', // 存储翻译后的转录结果
       showLanguage: false, // 控制语言选择弹窗的显示
-      bilingualTranslations: [], // 初始化双语翻译结果
       originalSentences: [], // 存储原始转录结果的句子
-      translatedSentences: [] // 存储翻译后的句子
+      translatedSentences: [], // 存储翻译后的句子
+      activeTab: 'transcription', // 当前选中的标签
+      summary: '', // 摘要内容
+      isProcessing: false, // 进度条控制
+      progress: 0 // 进度值
     };
   },
   computed: {
     filteredOriginalSentences() {
-      // 过滤掉空行或仅有空格的行
       return this.originalSentences.filter(sentence => sentence.trim() !== '');
     }
   },
@@ -89,13 +118,13 @@ export default {
     },
     showLanguageSelection() {
       if (this.selectedFile) {
-        this.showLanguage = true; // 显示语言选择弹窗
+        this.showLanguage = true;
       } else {
         this.importStatus = '请先选择一个文件。';
       }
     },
     async importFile(language) {
-      this.showLanguage = false; // 立即关闭弹窗
+      this.showLanguage = false;
       if (this.selectedFile) {
         this.importStatus = `正在转录文件 "${this.selectedFile.name}"...`;
         this.selectedLanguage = language;
@@ -103,6 +132,13 @@ export default {
         formData.append('audio', this.selectedFile); // 将音频文件添加到 FormData
         formData.append('language', language); // 添加语言选择
 
+        this.isProcessing = true;
+        this.progress = 0;
+        const interval = setInterval(() => {
+          if (this.progress < 90) {
+            this.progress += 10; // 每次增加10%
+          }
+        }, 700);
         try {
           const response = await fetch('http://127.0.0.1:8000/transcribe/api/', {
             method: 'POST',
@@ -111,26 +147,32 @@ export default {
 
           if (response.ok) {
             const data = await response.json();
-            this.transcription = data.transcription; // 假设返回的 JSON 包含转录结果
-            this.importStatus = '文件转录完成！';
-
-            // 将转录文本按句子分割
-            this.originalSentences = this.transcription.split('.').map(sentence => sentence.trim());
-
-            // 调用翻译 API
-            await this.translateTranscription(this.transcription);
+            this.transcription = data.transcription;
+            this.importStatus = '会议转录完成！';
+            clearInterval(interval); // 完成后停止进度条
+            this.isProcessing = false;
+            if (language == 'english') {
+              this.originalSentences = this.transcription.split('.').map(sentence => sentence.trim());
+              // 调用翻译 API
+              await this.translate();
+            } else {
+              this.originalSentences = this.transcription.split('。').map(sentence => sentence.trim());
+            }
           } else {
             this.importStatus = '转录失败，请重试。';
           }
         } catch (error) {
           console.error('转录过程中出现错误: ', error);
           this.importStatus = '发生错误，请检查控制台。';
+        } finally {
+          clearInterval(interval); // 完成后停止进度条
+          this.isProcessing = false;
         }
       }
     },
-    async translateTranscription(transcription) {
-      this.translatedSentences = []; // 清空翻译数组
-
+    async translate() {
+      this.translatedSentences = [];
+      this.translatedtranscription = "";
       for (const sentence of this.originalSentences) {
         try {
           let response = await fetch('http://127.0.0.1:8000/translate/api/', {
@@ -144,6 +186,7 @@ export default {
           if (response.ok) {
             const translatedData = await response.json();
             const translatedSentence = translatedData.translated_text;
+            this.translatedtranscription += translatedSentence;
             this.translatedSentences.push(translatedSentence);
           } else {
             console.error('翻译失败:', response.statusText);
@@ -167,7 +210,7 @@ export default {
             '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
             '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">',
             '<w:body>',
-            '<w:p><w:r><w:t>' + this.transcription.replace(/\n/g, '</w:t></w:r><w:r><w:t>') + '</w:t></w:r></w:p>',
+            '<w:p><w:r><w:t>' + this.transcription.replace(/\n/g, '</w:t></w:r><w:r><w:t>') + '</w:t></r></w:p>',
             '</w:body>',
             '</w:document>'
           ].join('');
@@ -187,7 +230,70 @@ export default {
       link.click();
       window.URL.revokeObjectURL(link.href);
     },
-  },
+
+    exportSummary(format) {
+      let blob;
+      const filename = `summary.${format}`;
+
+      switch (format) {
+        case 'txt':
+          blob = new Blob([this.summary], { type: 'text/plain' });
+          break;
+        case 'docx':
+          const docxHeader = [
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+            '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">',
+            '<w:body>',
+            '<w:p><w:r><w:t>' + this.summary.replace(/\n/g, '</w:t></w:r><w:r><w:t>') + '</w:t></r></w:p>',
+            '</w:body>',
+            '</w:document>'
+          ].join('');
+          blob = new Blob([docxHeader], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+          break;
+        case 'md':
+          blob = new Blob([this.summary], { type: 'text/markdown' });
+          break;
+        default:
+          console.error('不支持的导出格式');
+          return;
+      }
+
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(link.href);
+    },
+
+    generateSummary() {
+      this.isProcessing = true;
+      this.progress = 0;
+
+      const interval = setInterval(() => {
+        if (this.progress < 90) {
+          this.progress += 10; // 每次增加10%
+        }
+      }, 1500);
+      axios.post('http://127.0.0.1:8000/summarize/api/', {
+        text: this.selectedLanguage === 'chinese' ? this.transcription : this.translatedtranscription
+      })
+      .then(response => {
+        if (response.status === 200) {
+          this.summary = "会议总结：" + response.data.summary;
+          this.importStatus = '会议总结完成！';
+        } else {
+          console.error('总结生成失败:', response.status, response.data);
+        }
+      })
+      .catch(error => {
+        console.error('请求失败:', error);
+      })
+      .finally(() => {
+        this.isProcessing = false;
+      });
+    }
+
+  }
 };
 </script>
 
@@ -244,7 +350,6 @@ export default {
 .file-input {
   display: none;
 }
-
 .control-button {
   padding: 12px 20px;
   background-color: #4285f4;
@@ -256,7 +361,10 @@ export default {
   align-items: center;
   gap: 10px;
   font-size: 1.2em;
-  transition: background-color 0.3s;
+}
+
+.control-button:hover {
+  background-color: #357ae8;
 }
 
 .language-modal {
@@ -279,7 +387,7 @@ export default {
 .export-buttons {
   margin-bottom: 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 .export-button {
@@ -308,5 +416,55 @@ export default {
 .sentence {
   margin: -10px 0;  /* 调整每行之间的间距 */
   line-height: 1.3; /* 设置行间距，减少此值会使行间距更紧凑 */
+}
+.tabs {
+  display: flex;
+  justify-content: left;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+
+.tabs button.active {
+  background-color: #eb8d1b;
+}
+
+.summary {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+/* 进度条样式 */
+.progress-container {
+  margin: 20px auto;       /* 水平居中 */
+  width: 50%;
+  background-color: #f3f3f3;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 20px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #4285f4, #34a853); /* 渐变色 */
+  border-radius: 10px;
+  width: 0;
+  transition: width 0.4s ease-out;
+}
+
+/* 导入状态样式 */
+.status {
+  font-size: 1.2em;
+  margin-top: 20px;
 }
 </style>

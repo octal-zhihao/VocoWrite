@@ -146,8 +146,8 @@ h1 {
 .controls {
   position: fixed;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: 20px;
+  width: 1488px;
   background-color: rgba(135, 206, 250, 0.5); /* 浅蓝色半透明背景 */
   display: flex;
   justify-content: center;
