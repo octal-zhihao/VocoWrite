@@ -151,6 +151,7 @@ export default {
             this.importStatus = '会议转录完成！';
             clearInterval(interval); // 完成后停止进度条
             this.isProcessing = false;
+            
             if (language == 'english') {
               this.originalSentences = this.transcription.split('.').map(sentence => sentence.trim());
               // 调用翻译 API
@@ -172,30 +173,27 @@ export default {
     },
     async translate() {
       this.translatedSentences = [];
-      this.translatedtranscription = "";
-      for (const sentence of this.originalSentences) {
-        try {
-          let response = await fetch('http://127.0.0.1:8000/translate/api/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ text: sentence }),
-          });
+      try {
+        let response = await fetch('http://127.0.0.1:8000/translate/api/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ texts: this.originalSentences }),  // 发送所有句子
+        });
 
-          if (response.ok) {
-            const translatedData = await response.json();
-            const translatedSentence = translatedData.translated_text;
-            this.translatedtranscription += translatedSentence;
-            this.translatedSentences.push(translatedSentence);
-          } else {
-            console.error('翻译失败:', response.statusText);
-          }
-        } catch (error) {
-          console.error('翻译过程中出现错误:', error);
+        if (response.ok) {
+          const translatedData = await response.json();
+          this.translatedSentences = translatedData.translated_texts;  // 批量处理结果
+          this.translatedtranscription = this.translatedSentences.join('');
+        } else {
+          console.error('翻译失败:', response.statusText);
         }
+      } catch (error) {
+        console.error('翻译过程中出现错误:', error);
       }
     },
+
 
     exportTranscription(format) {
       let blob;
@@ -273,7 +271,7 @@ export default {
         if (this.progress < 90) {
           this.progress += 10; // 每次增加10%
         }
-      }, 1500);
+      }, 700);
       axios.post('http://127.0.0.1:8000/summarize/api/', {
         text: this.selectedLanguage === 'chinese' ? this.transcription : this.translatedtranscription
       })

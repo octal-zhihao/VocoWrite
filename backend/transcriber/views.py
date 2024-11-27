@@ -40,10 +40,10 @@ def transcribe_audio(request):
             temp_wav_file_path = temp_wav_file.name
             # 根据语言选择句子分割符
             if language == "english":
-                transcription = get_transcription(temp_wav_file_path)
+                transcription = get_transcription(temp_wav_file_path, 'en')
                 sentences = transcription.split('.')
             else:  # 默认是中文
-                transcription = get_transcription(temp_wav_file_path)
+                transcription = get_transcription(temp_wav_file_path, 'zh_cn')
                 sentences = transcription.split('。')
             formatted_result = []
             for sentence in sentences:

@@ -44,7 +44,7 @@ os.chdir(path_pwd)
 
 # 创建和查询
 class get_result(object):
-    def __init__(self, appid, apikey, apisecret, file_path):
+    def __init__(self, appid, apikey, apisecret, file_path, language="zh_cn"):
         # 以下为POST请求
         self.Host = "ost-api.xfyun.cn"
         self.RequestUriCreate = "/v2/ost/pro_create"
@@ -67,9 +67,13 @@ class get_result(object):
         # 设置当前时间
         cur_time_utc = datetime.datetime.utcnow()
         self.Date = self.httpdate(cur_time_utc)
+        language_type = 1
+        if language == "en":
+            language_type = 3
         # 设置测试音频文件
         self.BusinessArgsCreate = {
-            "language": "zh_cn",
+            "language_type": language_type,
+            "language": 'zh_cn',
             "accent": "mandarin",
             "domain": "pro_ost_ed",
             # "callback_url": "http://IP:端口号/xxx/"
@@ -208,7 +212,7 @@ class get_result(object):
         return content
 
 
-def get_transcription(file_path):
+def get_transcription(file_path, language):
     # 输入讯飞开放平台的appid，secret、key和文件路径
     appid = "93d8ec2d"
     apikey = "71f0d86d94f123f8c904b7b1b4fe0090"
@@ -220,7 +224,7 @@ def get_transcription(file_path):
         convert_to_wav(file_path, file_path.replace(".wav", "_converted.wav"))
         file_path = file_path.replace(".wav", "_converted.wav")
 
-    gClass = get_result(appid, apikey, apisecret, file_path)
+    gClass = get_result(appid, apikey, apisecret, file_path, language)
     return gClass.get_result()
 
 # if __name__ == '__main__':
